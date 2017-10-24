@@ -13,7 +13,7 @@ r2 = a-b
 r3 = a*b
 r4 = a/b
 v1 = c(r1,r2,r3,r4)
-r5 = a**b
+r5 = a**b 
 v1 = c(v1, r5)
 print(v1)
 v2 = c("sum", "difference", "product", "ratio", "power")
