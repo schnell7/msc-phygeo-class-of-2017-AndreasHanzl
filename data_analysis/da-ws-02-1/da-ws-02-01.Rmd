@@ -1,0 +1,100 @@
+---
+title: "da-ws-02-1"
+author: "Andreas Hanzl Robin Fischer Leonie Hahn"
+date: "6 November 2017"
+output: html_document
+---
+
+### Nr.1
+```{r}
+n <- 3
+if (n > 1) {
+  print("Larger")
+} else if (n<=1){
+  print ("Equal or smaller")
+}
+```
+### Nr.2
+```{r}
+if (n > 1) {
+  print("Larger")
+} else if (n==1){
+  print ("Equal")
+}else if (n<1){
+  print("Smaller")
+}
+```
+### Nr.3
+```{r}
+if((n %% 2) == 0) {
+  print("Even")
+} else {
+  print ("Odd")
+}
+```
+### Nr.4
+```{r}
+for (i in seq(0,2)){
+  if (i > 1) {
+    print("Larger")
+  } else if (i==1){
+    print ("Equal")
+  }else if (i<1){
+    print("Smaller")
+  }}
+```
+### Nr.5
+```{r}
+myvector<-c()
+for (i in seq(0,2)){
+  if(i>1) {
+    myvector[i+1]<-"Larger"
+  } else if (i==1) {
+    myvector[i+1]<-"Equal"
+  } else  {
+    myvector[i+1]<-"Smaller"
+  }
+}
+print(myvector)
+```
+### Nr.6
+```{r}
+mylist<-list()
+for (i in seq(0,2)){
+  if(i>1) {
+    mylist[i+1]<-"Larger"
+  } else if (i==1) {
+    mylist[i+1]<-"Equal"
+  } else  {
+    mylist[i+1]<-"Smaller"
+  }
+}
+print(mylist)
+```
+### Nr.7
+```{r}
+result<-lapply(i<-seq(0,2),function(i){
+  if(i>1) {
+    return("Larger")
+  } else if (i==1) {
+    return("Equal")
+  } else  {
+    return("Smaller")
+  }
+})
+print(result)
+```
+### Nr.8
+```{r}
+result<-lapply(i<-seq(0,2),function(i){
+  if(i>1) {
+    return("Larger")
+  } else if (i==1) {
+    return("Equal")
+  } else  {
+    return("Smaller")
+  }
+})
+result=unlist(result)
+print(result)
+```
