@@ -1,0 +1,74 @@
+---
+title: "da-ws-03-01_02"
+author: "Andreas Hanzl, Robin Fischer, Leonie Hahn"
+date: "8 November 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### WS 03-01
+```{r}
+setwd("C:/Users/Andreas/Documents/Physische Geographie/WiSe 2017/Data Analysis/da-ws-03")
+
+df<- read.table("hessen_holzeinschlag_1997-2014.csv",skip=4, header=TRUE, sep=";",dec="," , nrows =18)
+
+write.csv(df,file="hessen_holzeinschlag_1997-2014_clean.csv",row.names=FALSE)
+```
+### WS 03-02
+### Nr.1
+```{r}
+df_bearb<- read.csv("hessen_holzeinschlag_1997-2014_clean.csv",header=TRUE, sep=",",dec=",")
+
+numc <- c("Eiche", "Buche","Buntholz","Fichte","Kiefer","Insgesamt")
+boxplot(df_bearb[, numc],outline=FALSE, ylab="Einschlagsmenge", xlab="Baumart", main="Holzeinschlag in Hessen 1997-2014")
+```
+
+### Nr.2 
+
+#### Fichte:
+Der Holzeinschlag der Fichten zeigt eine hohe Streuung der Werte.
+
+#### Buche:
+Der Holzeinschlag der Buche zeigt eine Tendenz zu niedrigeren Werten gegenüber dem Median.
+
+
+###Nr.3
+```{r}
+Eiche <- cbind(df_bearb$Buche, df_bearb$Eiche)
+Kiefer <- cbind(df_bearb$Buche, df_bearb$Kiefer)
+Fichte <- cbind(df_bearb$Buche, df_bearb$Fichte)
+Buntholz <- cbind(df_bearb$Buche, df_bearb$Buntholz)
+Jahr <- df_bearb$FWJ
+
+par(mfrow=c(2,2))
+
+
+matplot(Jahr, Eiche, pch=16,main="Buche und Eiche", ylab="Einschlagsmenge", type="p", col=c("black","red"))
+legend("right", c("Buche","Eiche"), pch=16, col=c("black","red"), cex=0.7)
+
+matplot(Jahr, Kiefer, pch=16,main="Buche und Kiefer", ylab="Einschlagsmenge", type="p", col=c("black","purple"))
+legend("right", c("Buche","Kiefer"), pch=16, col=c("black","purple"), cex=0.7)
+
+matplot(Jahr, Fichte, pch=16,main="Buche und Fichte", ylab="Einschlagsmenge", type="p", col=c("black","green"))
+legend("right", c("Buche","Fichte"), pch=16, col=c("black","green"), cex=0.7)
+
+matplot(Jahr, Buntholz, pch=16,main="Buche und Buntholz", ylab="Einschlagsmenge", type="p", col=c("black","orange"))
+legend("right", c("Buche","Buntholz"), pch=16, col=c("black","orange"), cex=0.7)
+```
+
+### Nr.4
+
+#### Buche und Eiche:
+Die Einschlagsmengen der Buche liegen deutlich über den Mengen der Eiche, wobei Ähnlichkeiten in Zu- und Abnahmen innerhalb des Zeitintervalls zu erkennen sind. 
+
+#### Buche und Kiefer:
+Die Einschlagsmengen der Kiefer variieren im Untersuchungszeitraum deutlich, wobei die Buche stärkere Schwankungen mit höherer Einschlagsmenge aufweist.
+
+#### Buche und Fichte:
+Die Einschlagsmengen der Fichte liegen meist deutlich über jener der Buche und besitzt einige extreme Ausreißer nach oben (bspw. im Jahr 2007).
+
+#### Buche und Buntholz:
+Die Darstellung erlaubt keinen Vergleich zwischen den Kategorien, da Buntholz keine definierte Gruppe von Bäumen darstellt und Buntholz in der Tabelle ab 2000 keinen Einschlag mehr verzeichnet und ab 2010 den Buchen hinzugerechnet wird.
+
