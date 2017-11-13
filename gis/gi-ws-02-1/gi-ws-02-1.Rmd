@@ -1,0 +1,114 @@
+---
+title: "gi-ws-02-1"
+author: "Andreas Hanzl Leonie Hahn Robin Fischer"
+date: "13 November 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Nr.1
+```{r}
+structural <- c("Baumhoehe","Kronendichte","Hoehe des Unterwuchs", "Dichte des Unterwuchs", "Topographie")
+response   <- c("Laufzeit - First Return","Punktwolkendichte","Laufzeit - Returns","Punktwolkendichte","Laufzeit-Last Return")
+spatial    <- c("1 Meter","1 Meter", "1 Meter", "1 Meter","1 Meter")
+
+Tabelle <- data.frame(structural, response, spatial)
+colnames(Tabelle) <- c("Structural attributes", "Response", "Spatial scale")
+# rownames(Tabelle) <- c("")
+Tabelle
+```
+
+### Nr.2
+
+```{r}
+library(diagram)
+openplotmat()
+elpos <- coordinates (c(3, 1, 1, 2, 5, 5))
+fromto <- matrix(ncol = 5, nrow = 6, data = c(1:30))
+straightarrow(from = elpos[1, ], to = elpos[2, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.3, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[3, ], to = elpos[2, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.3, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[2, ], to = elpos[4, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[4, ], to = elpos[5, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[5, ], to = elpos[6, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[5, ], to = elpos[7, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[6, ], to = elpos[8, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[6, ], to = elpos[9, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[6, ], to = elpos[10, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[7, ], to = elpos[12, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[7, ], to = elpos[16, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.8, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[8, ], to = elpos[13, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[9, ], to = elpos[14, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[10, ], to = elpos[15, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+straightarrow(from = elpos[12, ], to = elpos[17, ], lwd = 2, lty = 1, lcol = "black"
+              , arr.pos = 0.6, arr.length = 0.5, endhead = FALSE, 
+              segment = c(0,1))
+textrect (elpos[1,], 0.05, lab = "IMU", box.col = "green",
+              shadow.col = "darkgreen", shadow.size = 0.005, cex = 1.5)
+textrect (elpos[2,], 0.21, 0.05, lab = "GPS (Position Flugzeug)", box.col = "green",
+              shadow.col = "darkgreen", shadow.size = 0.005, cex = 1.5)
+textrect (elpos[3,], 0.05, lab = "DGM", box.col = "green",
+              shadow.col = "darkgreen", shadow.size = 0.005, cex = 1.5)
+textrect (elpos[4,], 0.21, 0.05, lab = "Aufnahme (Pulse)", box.col = "blue",
+              shadow.col = "darkblue", shadow.size = 0.005, cex = 1.5)
+textrect (elpos[5,], 0.21, 0.05, lab = "Returns", box.col = "orange",
+              shadow.col = "red", shadow.size = 0.005, cex = 1.5)
+textellipse (elpos[6,], 0.08, 0.05, lab = "Laufzeit", box.col = "green",
+              shadow.col = "darkgreen", shadow.size = 0.005, cex = 1.5)
+textellipse (elpos[7,], 0.08, 0.05, lab = "Dichte", box.col = "green",
+              shadow.col = "darkgreen", shadow.size = 0.005, cex = 1.5)
+textrect (elpos[8,], 0.09, 0.05, lab = "First", box.col = "blue",
+          shadow.col = "darkblue", shadow.size = 0.005, cex = 1.5)
+textrect (elpos[9,], 0.09, 0.05, lab = "Inter", box.col = "blue",
+          shadow.col = "darkblue", shadow.size = 0.005, cex = 1.5)
+textrect (elpos[10,], 0.09, 0.05, lab = "Last", box.col = "blue",
+          shadow.col = "darkblue", shadow.size = 0.005, cex = 1.5)
+textrect (elpos[12,], 0.09, 0.05, lab = "Anordnung", box.col = "blue",
+          shadow.col = "darkblue", shadow.size = 0.005, cex = 1.5)
+textrect (elpos[13,], 0.09, 0.05, lab = "z.B. Baumhöhe", box.col = "orange",
+          shadow.col = "red", shadow.size = 0.005, cex = 1)
+textrect (elpos[14,], 0.09, 0.05, lab = "z.B. Strauchhöhe", box.col = "orange",
+          shadow.col = "red", shadow.size = 0.005, cex = 1)
+textrect (elpos[15,], 0.09, 0.05, lab = c("z.B. Höhen", "Unterwuchs / Boden"), box.col = "orange",
+          shadow.col = "red", shadow.size = 0.005, cex = 0.5)
+textrect (elpos[16,], 0.09, 0.05, lab = c("z.B. Kronendichte,", "Dichte Unterwuchs / Strauchschicht"), box.col = "orange",
+          shadow.col = "red", shadow.size = 0.005, cex = 0.5)
+textrect (elpos[17,], 0.09, 0.05, lab = c("z.B. Erkennung großer Strukturen", "(Haus, Dach, etc.)"), box.col = "orange",
+          shadow.col = "red", shadow.size = 0.005, cex = 0.5)
+```
+
+*Die Darstellung des Flowcharts ist in R Markdown stark verzogen, wie man zum Vergleich am jpeg (Flowchart.jpg) des Plots aus R mit demselben Code sieht, das ebenfalls im  Repository zu finden ist.
+
+### Nr.3
+
+Ein Hauptproblem war die richtige Deutung des Begriffes "Response". Es war recht unklar, ob damit die LIDAR-technischen Parameter oder die Auswirkungen auf die Artendiversität gemeint war. Das Erstellen eines Flowcharts mit R ist bei größeren und komplexen Charts unpraktikabel.
