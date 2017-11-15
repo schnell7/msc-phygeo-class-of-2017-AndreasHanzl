@@ -1,0 +1,40 @@
+---
+title: "gi-ws-03"
+author: "Robin Fischer, Andreas Hanzl, Leonie Hahn"
+date: "15 November 2017"
+output: html_document
+---
+
+
+# Berechung der Diversität nach Shannon (+Evenness)
+
+### Installieren des Vegan Pakets
+```{r eval=FALSE}
+install.packages("vegan")
+```
+### Laden von vegan
+```{r}
+library(vegan)
+```
+### Vektoren festlegen - jeweils die Anzahl der Punkte pro Klasse von 10 bis 1
+```{r}
+Anzahl<-c(1, 2, 3, 10, 1, 7, 4, 1, 4, 2)
+```
+### Festlegung von S (S = Anzahl der gesamten Klassen)
+```{r}
+S <- c(10)
+```
+### Shannon Diversitätsindex berechnen
+```{r}
+Shannon <- diversity(Anzahl, index = "shannon",MARGIN =, base =)
+```
+### Eveness des Shannon berechnen
+```{r}
+Evenness_Shannon <- diversity(Anzahl, index="shannon")/log(S)
+```
+### Ergebnisse anzeigen
+```{r}
+Shannon
+
+Evenness_Shannon
+```
