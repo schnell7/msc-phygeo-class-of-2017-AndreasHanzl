@@ -1,0 +1,63 @@
+---
+title: "rs-ws-02"
+author: "Robin Fischer, Andreas Hanzl, Leonie Hahn"
+date: "14 November 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(raster)
+library(sp)
+library(rgdal)
+
+setwd("C:/Users/Andreas/Documents/Physische Geographie/WiSe 2017/remote_sensing/rs-ws-02-1/")
+```
+
+Reinladen der Daten
+```{r}
+lidar<-stack("lidar.tif")
+raster1<-stack("478000_5630000.tif")
+raster2<-stack("478000_5632000.tif")
+```
+
+Rasterdateien ausgeben  - Problem überschriebung der alten Datensätze
+```{r}
+writeRaster(raster1, "478000_5630000_proj", format = "GTiff")
+writeRaster(raster2, "478000_5632000_proj", format = "GTiff")
+writeRaster(lidar, "lidar_proj.tif", format = "GTiff")
+```
+
+Rasterdatenkopien einladen in R
+```{r}
+raster1_proj <- stack("478000_5630000_proj.tif")
+raster2_proj <- stack("478000_5632000_proj.tif")
+lidar_proj <- stack("lidar_proj.tif")
+```
+
+projektion anschauen
+```{r}
+projection(lidar_proj)
+projection(raster1_proj)
+projection(raster2_proj)
+```
+
+umprojezieren der Raster1 und 2
+```{r}
+projection(raster1_proj) <- CRS("+init=epsg:25832")
+projection(raster2_proj) <- CRS("+init=epsg:25832")
+```
+
+überprüfen der Projektion
+```{r}
+projection(raster1_proj)
+projection(raster2_proj)
+```
+Ausschneiden auf LIDAR Datensatz
+```{r}
+raster1_crop <- crop(raster1_proj, extent(lidar_proj), filename="478000_5630000_crop.tif" )
+raster2_crop <- crop(raster2_proj, extent(lidar_proj), filename="478000_5632000_crop.tif" ) 
+```
