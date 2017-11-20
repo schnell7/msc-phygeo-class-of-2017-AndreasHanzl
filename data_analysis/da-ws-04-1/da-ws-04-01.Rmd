@@ -1,0 +1,117 @@
+---
+title: "da-ws-04-1"
+author: "Andreas Hanzl, Leonie Hahn, Robin Fischer"
+date: "18 November 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("C:/Users/Andreas/Documents/Physische Geographie/WiSe 2017/data_analysis/da-ws-04/")
+
+# Einlesen und nur bis Zeile 8925 einlesen mit nrow Header ist auch eingelesen
+feldfruechte<-read.table("115-46-4_feldfruechte.txt", skip = 6, header = TRUE, sep = ";", dec = ",", fill=TRUE, encoding="ANSI")
+#fill=TRUE-> nimmt alle Zeilen, anstatt nrow=8925 (da Zeile 8926 weniger Spalten hat als alle anderen)
+#encoding="ANSI"-> für Umlaute
+```
+
+```{r}
+head(feldfruechte)
+
+str(feldfruechte)
+
+tail(feldfruechte)
+```
+
+```{r}
+#Ende abschneiden
+feldfruechte<-feldfruechte[1:8925,]
+
+#Spaltennamen unmbenennen
+names(feldfruechte) <- c("Jahr", "ID", "Ort", "Winterweizen","Roggen und Wintermenggetreide","Wintergerste", "Sommergerste", "Hafer", "Triticale", "Kartoffeln", "Zuckerrüben", "Winterraps", "Silomais")
+```
+
+```{r}
+#sub ersetzt Komma mit Punkt
+for(c in colnames(feldfruechte)[4:13]){
+  feldfruechte[,c][feldfruechte[,c]=="."|
+                     feldfruechte[,c]=="-"|
+                     feldfruechte[,c]=="/"|
+                     feldfruechte[,c]==","] <- NA
+  feldfruechte[,c]<- as.numeric(sub(",", ".", as.character(feldfruechte[,c])))
+}
+
+summary(feldfruechte)
+```
+
+```{r}
+#Split mehrere Informationen innerhalb einer Spalte auftrennen
+#Spalte mit komma getrennt
+orte_split <- strsplit(as.character(feldfruechte$Ort), ",")
+head(orte_split)
+
+#anzeige der maximalen wörter in Spalte
+max(sapply(orte_split, length))
+
+#erstellen von 3 spalten
+orte_df <- lapply(orte_split, function(i){
+  p1 <- sub("^\\s+", "", i[1])  # Trim leading white spaces
+  if(length(i) > 2){
+    p2 <- sub("^\\s+", "", i[2])
+    p3 <- sub("^\\s+", "", i[3])
+  } else if (length(i) > 1){
+    p2 <- sub("^\\s+", "", i[2])
+    p3 <- NA
+  } else {
+    p2 <- NA
+    p3 <- NA
+  }
+  data.frame(A = p1,
+             B = p2,
+             C = p3)
+})
+orte_df <- do.call("rbind", orte_df)
+orte_df$ID <- feldfruechte$ID 
+orte_df$Jahr <- feldfruechte$Jahr
+head(orte_df)
+```
+
+```{r}
+#nachschauen,welche kategorien in spalte 2 vorkommen
+unique(orte_df[, 2])
+
+#nachschauen, was in spalte 2 steht, wenn kreisfreie stadt in 3.spalte steht
+unique(orte_df$B[!is.na(orte_df$C)])
+
+#Information von Spalte 3 und spalte 2 tauschen, wenn etwas in spalte 3 steht
+orte_df[!is.na(orte_df$C),] <- orte_df[!is.na(orte_df$C), c(1,3,2, 4, 5)]
+
+#landkreis in spalte 2 ergänzen
+for(r in seq(nrow(orte_df))){
+  if(is.na(orte_df$B[r]) &
+     grepl("kreis", tolower(orte_df$A[r]))){
+    orte_df$B[r] <- "Landkreis"
+  }
+}
+unique(feldfruechte$Ort[is.na(orte_df$B)])
+
+sum(is.na(orte_df$B))
+
+#information in 2 spalte hinzufügen
+orte_df$B[is.na(orte_df$B) & nchar(as.character(orte_df$ID) == 2)] <- "Bundesland"
+orte_df$B[orte_df$ID == "DG"] <- "Land"
+head(orte_df)
+sum(is.na(orte_df$B))
+```
+
+```{r}
+#Einfügen in originaltabelle
+feldfruechte_final <- merge(feldfruechte, orte_df, by = c("ID", "Jahr"))
+
+#löschen der spalte "ort"
+feldfruechte_final$Ort <- NULL
+feldfruechte_final[c(1,50, 600),]
+```
