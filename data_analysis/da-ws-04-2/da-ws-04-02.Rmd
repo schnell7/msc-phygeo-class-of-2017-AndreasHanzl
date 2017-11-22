@@ -1,0 +1,121 @@
+---
+title: "da-ws-04-02"
+author: "Andreas Hanzl, Leonie Hahn, Robin Fischer"
+date: "22 November 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Clean your data: Feldfrüchte
+```{r, results='hide'}
+# Set path ---------------------------------------------------------------------
+filepath_base <- "C:/Users/Andreas/Documents/Physische Geographie/WiSe 2017/"
+path_data <- paste0(filepath_base, "data/")
+path_csv <- paste0(path_data, "csv/")
+path_rdata <- paste0(path_data, "rdata/")
+path_scripts <- paste0(filepath_base, "fun/")
+path_temp <- paste0(filepath_base, "temp/")
+
+# Pre-clean crop data ----------------------------------------------------------
+# Read data
+cp <- read.table(paste0(path_csv, "115-46-4_feldfruechte.txt"),
+                skip = 6, header = TRUE, sep = ";", dec = ",", 
+                fill = TRUE, encoding="ANSI")
+
+names(cp) <- c("Jahr", "ID", "Ort", "Winterweizen", "Roggen", "Wintergerste",
+              "Frühlingsgerste", "Hafer", "Triticale", "Kartoffeln", "Zuckerrüben",
+              "Raps", "Silomais")
+
+# Cut off tail
+tail(cp)
+cp <- cp[1:8925,]
+```
+
+```{r}
+# Numbers as numbers, not characters/factors
+for(c in colnames(cp)[4:13]){
+  cp[, c][cp[, c] == "." | 
+           cp[, c] == "-" | 
+           cp[, c] == "," | 
+           cp[, c] == "/"] <- NA
+  cp[, c] <- as.numeric(sub(",", ".", as.character(cp[, c])))
+}
+```
+
+```{r}
+# Load clean_place function file
+source(paste0(path_scripts, "clean_place.R"))
+```
+
+```{r}
+# Run clean.place function
+cp_clean <- clean.place(cp)
+```
+
+```{r}
+# Show first rows
+head(cp_clean)
+```
+
+```{r}
+# Save as RDS
+saveRDS(cp_clean, file = paste0(path_rdata, "cp_clean.rds"))
+```
+
+### Clean your data: Landnutzung
+```{r, results='hide'}
+# Set path ---------------------------------------------------------------------
+filepath_base <- "C:/Users/Andreas/Documents/Physische Geographie/WiSe 2017/"
+path_data <- paste0(filepath_base, "data/")
+path_csv <- paste0(path_data, "csv/")
+path_rdata <- paste0(path_data, "rdata/")
+path_scripts <- paste0(filepath_base, "fun/")
+path_temp <- paste0(filepath_base, "temp/")
+
+# Pre-clean crop data ----------------------------------------------------------
+# Read data
+lu <- read.table(paste0(path_csv, "AI001_gebiet_flaeche.txt"),
+                skip = 4, header = TRUE, sep = ";", dec = ",", 
+                fill = TRUE, encoding="ANSI")
+
+names(lu) <- c("Jahr", "ID", "Ort", "Anteil Siedlungs- und Verkehrsfläche an Gesamtfläche", 
+               "Anteil Erholungsfläche an Gesamtfläche", "Anteil Landwirtschaftsfläche an Gesamtfläche",
+              "Anteil Waldfläche an Gesamtfläche")
+
+# Cut off tail
+tail(lu)
+lu <- lu[1:5250,]
+```
+
+```{r}
+# Numbers as numbers, not characters/factors
+for(c in colnames(lu)[4:7]){
+  lu[, c][lu[, c] == "." | 
+           lu[, c] == "-" | 
+           lu[, c] == "," | 
+           lu[, c] == "/"] <- NA
+  lu[, c] <- as.numeric(sub(",", ".", as.character(lu[, c])))
+}
+```
+
+```{r}
+# Load clean_place function file
+source(paste0(path_scripts, "clean_place.R"))
+```
+
+```{r}
+# Run clean.place function
+lu_clean <- clean.place(lu)
+```
+
+```{r}
+# Show first rows
+head(lu_clean)
+```
+
+```{r}
+# Save as RDS
+saveRDS(lu_clean, file = paste0(path_rdata, "lu_clean.rds"))
