@@ -1,0 +1,23 @@
+---
+title: "gi-ws-03-2"
+author: "Robin Fischer, Andreas Hanzl, Leonie Hahn"
+date: "27 November 2017"
+output: html_document
+---
+
+
+
+![](C:/Users/Robin/Desktop/marburg_master_uni/GIS/gi-ws-03-neu/max.PNG)
+
+![](C:/Users/Robin/Desktop/marburg_master_uni/GIS/gi-ws-03-neu/aver.PNG)
+
+![](C:/Users/Robin/Desktop/marburg_master_uni/GIS/gi-ws-03-neu/vdr.PNG)
+
+
+```{r}
+# Als Index wurde der Vertical distribution ratio (VDR) angewendet
+# Dafür wurden die einzelnen Paramater mittels des Tools "LAS DATASET to RASTER" aus den Lidar Daten erstellt
+# Im Anschluss wurde der Index mit dem Raster Calculator berechnet.
+#
+
+```
