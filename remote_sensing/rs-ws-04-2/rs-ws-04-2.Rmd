@@ -1,0 +1,58 @@
+---
+title: "rs-ws-04-2"
+author: "Robin Fischer, Andreas Hanzl, Leonie Hahn"
+date: "30 November 2017"
+output: html_document
+---
+
+```{r eval= FALSE}
+library(raster)
+library(sp)
+library(rgdal)
+
+# Reinladen der Daten
+
+setwd("C:/Users/Robin/Desktop/marburg_master_uni/Fernerkundung/rs-ws-05/Fernerkundung/474000_5630000_zugeschnitten")
+Raster <- stack("476000_5632000_overlaid.tif")
+
+Blue <- Raster[[1]]
+Green<- Raster[[2]]
+Red <- Raster[[3]]
+
+install.packages("glcm")
+library(glcm)
+
+Red_mean_3 <-glcm(Red, n_grey = 255, window = c(3, 3), shift = c(1, 1), statistics = 
+       c("mean"), min_x=NULL, max_x=NULL, na_opt="any", 
+     na_val=NA, scale_factor=1, asinteger=FALSE)
+
+Red_mean_7 <-glcm(Red, n_grey = 255, window = c(7, 7), shift = c(1, 1), statistics = 
+       c("mean"), min_x=NULL, max_x=NULL, na_opt="any", 
+     na_val=NA, scale_factor=1, asinteger=FALSE)
+
+Red_mean_25 <-glcm(Red, n_grey = 255, window = c(25, 25), shift = c(1, 1), statistics = 
+       c("mean"), min_x=NULL, max_x=NULL, na_opt="any", 
+     na_val=NA, scale_factor=1, asinteger=FALSE)
+
+writeRaster(Red_mean_3, "Red_mean_3", format = "GTiff")
+writeRaster(Red_mean_7, "Red_mean_7", format = "GTiff")
+writeRaster(Red_mean_25, "Red_mean_25", format = "GTiff")
+```
+
+# Red_mean_3
+
+![](C:/Users/Robin/Desktop/marburg_master_uni/Fernerkundung/rs-ws-05/red_mean_3.PNG)
+
+# Red_mean_7
+
+![](C:/Users/Robin/Desktop/marburg_master_uni/Fernerkundung/rs-ws-05/red_mean_7.PNG)
+
+# Red_mean_25
+
+![](C:/Users/Robin/Desktop/marburg_master_uni/Fernerkundung/rs-ws-05/red_mean_25.PNG)
+
+### Wir haben bei den folgenden Luftbildern den Filter "mean" (Mittelwert) für den roten Kanal angewandt. Mit diesem Filter berechnet man für jedes Pixel den Mittelwert aus den umliegenden Pixeln, was wir für 3x3-, 7x7- und 25x25-Pixel-Quadrate durchgeführt haben.
+
+### Je nach der gewünschten Analyse eignet sich eine andere dieser drei durchgeführten Varianten, wobei die 7x7-Pixel-Quadrate eine ausgewogene Mischung zwischen Genauigkeit und Generalisierung aufweisen. Die 25x25-Pixel-Quadrate sind schon sehr stark generalisiert und eignen sich für großmaßstäbige oder sehr generalisierte Analysen, während die 3x3-Pixel-Quadrate sehr nah am Original liegen und auch noch für feinere Analysen eignen.
+
+
