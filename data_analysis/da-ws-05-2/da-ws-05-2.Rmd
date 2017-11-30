@@ -1,0 +1,95 @@
+---
+title: "da-ws-05-2"
+author: "Andreas Hanzl, Leonie Hahn, Robin Fischer"
+date: "30 November 2017"
+output: html_document
+---
+### Statistische Beschreibung zwischen Winterweizen- und gersteerträgen
+```{r}
+# Pfad setzen ---------------------------------------------------------------------
+filepath_base <- "C:/Users/Andreas/Documents/Physische_Geographie/WiSe_2017/"
+path_data <- paste0(filepath_base, "data/")
+path_csv <- paste0(path_data, "csv/")
+path_rdata <- paste0(path_data, "rdata/")
+path_scripts <- paste0(filepath_base, "fun/")
+path_temp <- paste0(filepath_base, "temp/")
+
+# Reinladen von Paket car
+# install.packages("car")
+library(car)
+
+# Reinladen von Paket lmTest
+# install.packages("lmtest")
+library(lmtest)
+
+# Reinladen der RDS-Datei
+cp_clean<-readRDS(paste0(path_rdata, "cp_clean.rds"))
+
+ind<-cp_clean$Winterweizen
+dep<-cp_clean$Wintergerste
+lmod <- lm(dep~ind)
+
+# Darstellung des Scatter Plots mit Regressionsgerade
+plot(ind, dep, xlab = "Winterweizen (ind)", ylab = "Wintergerste (dep)")
+regLine(lmod, col="red")
+
+# Darstellung der Häufigkeitsverteilungen der zwei Variablen
+hist(ind, main = "Winterweizen (ind)")
+hist(dep, main = "Wintergerste (dep)")
+
+## Grafisch auf Heteroskedastizität prüfen
+par(mfrow=c(2,2))
+plot(lmod)
+
+## Rechnerisch auf Heteroskedastizität prüfen
+# Breusch-Pagan-Test
+bptest(lmod)
+#NCV-Test
+ncvTest(lmod)
+
+# Da  p Wert der beiden Tests niedriger als 0,05 ist, kann die Null-Hypothese verworfen werden
+# Die Daten sind also nicht heteroskedastisch.
+
+summary(lmod)
+```
+##### Am Residuals-Fitted-Values-Plot erkennt man an der gleichmäßigen Verteilung der Datenpunkte entlang der sehr flachen, roten Regressionsgerade eine homoskedastische Verteilung des Datensatzes, während man am Q-Q-Plot eine Normalverteilung der Residuen mit der bei großen Datensätzen üblichen asymptotischen Form sehr gut grafisch erkennen kann.
+
+### Normalverteilung anhand von 50 bzw. 100 zufälligen Werten
+```{r}
+# 50 Werte
+p_one <- NULL
+p_all <- NULL
+for (i in seq(1,100)){
+  set.seed(i)
+  s <- sample(nrow(cp_clean) ,50)
+  
+  ind <- cp_clean$Winterweizen
+  dep <- cp_clean$Wintergerste
+  
+  lmod_coin<-lm(dep[s]~ind[s])
+  p_one <- shapiro.test(lmod_coin$residuals)$p.value
+  p_all <- c(p_all, p_one)
+}
+samples_50<-table(p_all < 0.05)
+samples_50
+
+# 100 Werte
+p_one_2 <- NULL
+p_all_2 <- NULL
+for (i in seq(1,100)){
+  set.seed(i)
+  a <- sample(nrow(cp_clean) ,100)
+  
+  ind_2 <- cp_clean$Winterweizen
+  dep_2 <- cp_clean$Wintergerste
+  
+  lmod_coin_2<-lm(dep_2[a]~ind_2[a])
+  p_one_2 <- shapiro.test(lmod_coin_2$residuals)$p.value
+  p_all_2 <- c(p_all_2, p_one_2)
+}
+samples_100<-table(p_all_2 < 0.05)
+samples_100
+```
+##### Mittels Shapiro-Wilkinson Test konnte festgestellt werden, dass in beiden Proben die analysiert Datensätze zumeist einen p-Wert größer 0.05 ergaben und somit normalverteilt waren (n=50 -> 78; n=100 -> 67) bzw. die Nullhypothese nicht verworfen wurde.
+
+
