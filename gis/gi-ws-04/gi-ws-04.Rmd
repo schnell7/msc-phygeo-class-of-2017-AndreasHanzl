@@ -1,0 +1,99 @@
+---
+title: "gi-ws-04"
+authors: "Robin Fischer, Leonie Hahn, Andreas Hanzl"
+output: html_document
+---
+
+### Erarbeitung einer variablen Schleife (in progress)
+```{r, eval=FALSE}
+mainDir <- "C:/Users/Leonie.Hahn/Documents/MPG-ui/daten/gis" ##my working directory
+inDir <- "/tutorial/"## my input folder
+outDir<- "/temp/"##my output folder
+Fusion<-"C:/FUSION/"
+###las_files<-list.files(paste0(mainDir,inDir), pattern=".las$", full.names=TRUE,recursive = TRUE)
+
+las_names<-list.files(paste0(mainDir,inDir), pattern=".las$", full.names=FALSE,recursive = TRUE)
+
+
+for (i in las_names){print(i)}
+
+i=las_names[1]
+
+#Loop, der Groundpoints von Klasse 2 auswählt, schneidet Groundpoints auf Grenzen(=extent$MinX, " ", extent$MinY, " ", extent$MaxX, " ", extent$MaxY) zu 
+for (i in las_names){
+system(paste0(Fusion, "catalog.exe ", mainDir, inDir, i ," ",
+              mainDir, outDir, i, "_info.html" ))
+              extent<-read.csv(paste0(mainDir, outDir, i, "_info.csv" ))
+                                      system(paste0(Fusion, "clipdata.exe"," /class:2 ",
+                                                           mainDir, inDir, i, " ",
+                                                           mainDir, outDir, i, "_extent.las ",
+                                                           extent$MinX, " ", extent$MinY, " ", extent$MaxX, " ", extent$MaxY)
+                                      )
+                                      #Erstellung eines DGM
+                                      system(paste0(Fusion, "gridsurfacecreate.exe ", 
+                                                    mainDir, outDir, i, "_gridsurf.dtm",
+                                                    " 1 M M 1 32 0 0 ",mainDir, outDir, i, "_extent.las "))
+}
+
+hoehe <- c(0,2,5,10,15,25,30,50)
+hoehe[1]
+
+#j ist Länge des Vektors
+for (j in 1:length((hoehe)-1)){
+  system(paste0(paste0(Fusion, "clipdata.exe",j,
+                       " /height /dtm: ",i, "_gridsurf.dtm",
+                       i, "_extent.las ",
+                       i, "_height.las "),
+                extent$MinX, " ", extent$MinY, " ", extent$MaxX, " ", extent$MaxY))}
+
+```
+
+### Canopy cover rate (working), penetration rate (working), HOME rate (in progress)
+```{r, eval=FALSE}  
+
+# Set path 
+mainDir <- "C:/Users/Leonie.Hahn/Documents/MPG-ui/daten/gis"
+inDir <- "/input/"
+outDir <- "/temp/"
+Fusion <- "C:/FUSION/"
+
+### calculate canopy cover rate # 
+system(paste0(Fusion, "Cover.exe ",
+              mainDir, outDir, "caldern_GridSurf.dtm ", 
+              mainDir, outDir, "caldern_normalized_point_cloud_cov_20.dtm ",
+              "2 20 M M 1 32 0 0 ",  
+              mainDir, inDir, "lidar_files.txt "))
+
+### calculate penetration rate # 
+system(paste0(Fusion,"cover.exe "," /penetration ",
+              mainDir, outDir, "caldern_GridSurf.dtm ", 
+              mainDir, outDir, "caldern_normalized_point_cloud_pen_20.dtm ",
+              "2 20 M M 1 32 0 0 ",  
+              mainDir, inDir, "lidar_files.txt "))
+
+### calculate HOME rate # 
+system(paste0(Fusion,"GridMetrics.exe "," /raster:p50 ",
+              mainDir, outDir, "caldern_GridSurf.dtm ",
+              "2 20 ",
+              mainDir, outDir, "caldern_normalized_point_cloud_grime_20.dtm ",
+              mainDir, inDir, "lidar_files.txt "))
+
+### DTM2TIF für canopy cover
+system(paste0(Fusion,"DTM2TIF.exe ",
+              mainDir, outDir, "caldern_normalized_point_cloud_cov_20.dtm "))
+
+### DTM2TIF für penetration
+system(paste0(Fusion,"DTM2TIF.exe ",
+              mainDir, outDir, "caldern_normalized_point_cloud_pen_20.dtm "))
+
+### DTM2ASCII für canopy cover
+system(paste0(Fusion, "dtm2ascii.exe ",
+              mainDir,outDir, "caldern_normalized_point_cloud_cov_20.dtm ", 
+              mainDir,outDir, "caldern_normalized_point_cloud_cov_20.asc "))
+
+### DTM2ASCII für penetration
+system(paste0(Fusion, "dtm2ascii.exe ",
+              mainDir,outDir, "caldern_normalized_point_cloud_pen_20.dtm ", 
+              mainDir,outDir, "caldern_normalized_point_cloud_pen_20.asc "))
+
+```
