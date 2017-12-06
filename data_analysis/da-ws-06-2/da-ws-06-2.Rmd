@@ -1,0 +1,53 @@
+---
+title: "da-ws-06-2"
+author: "Robin Fischer, Andreas Hanzl, Leonie Hahn"
+date: "6 Dezember 2017"
+output: html_document
+---
+```{r}
+# Pfad setzen ---------------------------------------------------------------------
+filepath_base <- "C:/Users/Robin/Desktop/marburg_master_uni/"
+path_data <- paste0(filepath_base, "data/")
+path_csv <- paste0(path_data, "csv/")
+path_rdata <- paste0(path_data, "rdata/")
+path_scripts <- paste0(filepath_base, "fun/")
+path_temp <- paste0(filepath_base, "temp/")
+
+# Reinladen des Datensatzes
+
+cp_clean<-readRDS(paste0(path_rdata, "cp_clean.rds"))
+
+cp_clean <- cp_clean[!is.na(cp_clean$Winterweizen), ]
+cp_clean <- cp_clean[!is.na(cp_clean$Wintergerste), ]
+```
+
+
+```{r}
+# Erstellung bivariate lineare Regression
+
+x1 = cp_clean$Winterweizen
+y1 = cp_clean$Wintergerste
+lmod <- lm(y1~x1)
+plot(x1, y1, xlab = "Winterweizen (x1)", ylab = "Wintergerste (y1)")
+abline(lmod, col="red")
+```
+
+```{r}
+#cross validation - leave many out (80% des Datensatzen; 100 Durchläufe)
+
+cv_sample <- lapply(seq(100), function(i){
+  set.seed(i)
+  s <- sample(nrow(cp_clean), nrow(cp_clean)*0.8)
+  train <- cp_clean[s,]
+  test <- cp_clean[-s,]
+  lmod <- lm(Wintergerste ~ Winterweizen, data = train)
+  pred <- predict(lmod, newdata = test)
+  obsv <- test$Wintergerste
+  rmse <- sqrt(mean((pred - obsv)**2))
+  return(rmse)
+})
+# Ausgabe des RMSE und weiteren statistischen Werten
+
+summary(unlist(cv_sample))
+```
+
