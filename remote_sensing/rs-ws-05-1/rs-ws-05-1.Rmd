@@ -1,0 +1,72 @@
+---
+title: "rs-ws-05-1"
+author: "Andreas Hanzl, Robin Fischer, Leonie Hahn"
+date: "5 Dezember 2017"
+output: html_document
+---
+
+```{r eval=FALSE}
+library(raster)
+library(rgdal)
+library(sp)
+
+#Dateien einlesen
+path=("C:/Users/Leonie.Hahn/Documents/MPG-ui/daten/remote_sensing/474000_5630000/")
+rlist=list.files(path, pattern="crop.tif$" ,full.names=TRUE)
+data=lapply(rlist, function(x) {
+  stack(x)
+})
+data
+
+#mergen der einzelnen Kanäle aller Tiffs
+merge(data[[1]]@layers[[1]], data[[2]]@layers[[1]], data[[3]]@layers[[1]], data[[4]]@layers[[1]], data[[5]]@layers[[1]], data[[6]]@layers[[1]], filename="merge_blau.tif")
+merge(data[[1]]@layers[[2]], data[[2]]@layers[[2]], data[[3]]@layers[[2]], data[[4]]@layers[[2]], data[[5]]@layers[[2]], data[[6]]@layers[[2]], filename="merge_gruen.tif")
+merge(data[[1]]@layers[[3]], data[[2]]@layers[[3]], data[[3]]@layers[[3]], data[[4]]@layers[[3]], data[[5]]@layers[[3]], data[[6]]@layers[[3]], filename="merge_rot.tif")
+```
+```{r eval=FALSE}
+setwd("C:/Users/Leonie.Hahn/Documents/MPG-ui/daten/remote_sensing/474000_5630000/")
+#einladen der erstellten Raster der einzelnen Kanäle
+m_b <- raster("merge_blau.tif")
+m_g <- raster("merge_gruen.tif")
+m_r <- raster("merge_rot.tif")
+
+```
+#### Abbildungen der einzelnen Rasterkanäle
+###Blauer Kanal
+
+![](C:/Users/Leonie.Hahn/Documents/MPG-ui/scripte/remote_sensing/rs-ws-05-1/merge_blau.jpg)
+
+
+###Grüner Kanal
+![](C:/Users/Leonie.Hahn/Documents/MPG-ui/scripte/remote_sensing/rs-ws-05-1/merge_gruen.jpg)
+
+
+###Roter Kanal
+![](C:/Users/Leonie.Hahn/Documents/MPG-ui/scripte/remote_sensing/rs-ws-05-1/merge_rot.jpg)
+```{r eval=FALSE}
+#Green-Leaf Index berechnen
+GLI <- ((2*m_g-m_r-m_b)/(2*m_g+m_r+m_b))
+writeRaster(GLI, "GLI.tif", format="GTiff")
+```
+###Green-Leaf-Index
+![](C:/Users/Leonie.Hahn/Documents/MPG-ui/scripte/remote_sensing/rs-ws-05-1/GLI.jpg)
+```{r eval=FALSE}
+
+#Mean berechnen
+library(glcm)
+rot_mean_7<-glcm(m_r, n_grey = 255, window = c(7, 7), shift = c(1, 1), statistics = 
+                   c("mean"))
+gruen_mean_7<-glcm(m_g, n_grey = 255, window = c(7, 7), shift = c(1, 1), statistics = 
+                   c("mean"))
+blau_mean_7<-glcm(m_b, n_grey = 255, window = c(7, 7), shift = c(1, 1), statistics = 
+                   c("mean"))
+writeRaster(rot_mean_7, filename="rot_mean_7.tif", format="GTiff")
+
+mean_7 <- stack(blau_mean_7, gruen_mean_7, rot_mean_7)
+writeRaster(mean_7, filename="mean_7.tif", format="GTiff")
+```
+#####Mean wurde nur mit dem roten Kanal berechnet, da eine lange Rechenzeit bestand
+###Mean für den roten Kanal mit Pixelgröße 7*7
+![](C:/Users/Leonie.Hahn/Documents/MPG-ui/scripte/remote_sensing/rs-ws-05-1/rot_mean_7.jpg)
+
+  
