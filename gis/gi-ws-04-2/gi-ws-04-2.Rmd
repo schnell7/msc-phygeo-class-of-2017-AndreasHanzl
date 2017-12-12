@@ -1,0 +1,133 @@
+---
+title: "gi-ws-04-2"
+author: "Andreas Hanzl, Leonie Hahn, Robin Fischer"
+date: "12 Dezember 2017"
+output: html_document
+---
+
+```{r eval=FALSE}
+mainDir <- "C:/Users/Leonie.Hahn/Documents/MPG-ui/daten/gis" ##my working directory
+inDir <- "/tutorial/"## my input folder
+outDir<- "/temp/"##my output folder for temorary products
+results<-"/results/"
+
+Fusion<-"C:/FUSION/"
+require(rgdal)
+require(raster)
+
+
+sliceLasData<-function(lasList,heights){
+  for (i in lasList){
+    ##get basic info (expl. extent for clipData)
+    system(paste0(Fusion, "catalog.exe ",mainDir, inDir, i," ",
+                  mainDir, outDir,i, ".html"))
+    
+    extent<-read.csv(paste0(mainDir, outDir,i,".csv"))
+    
+    
+    #Groundpoints von Klasse 2 werden ausgewählt, Groundpoints 
+    #auf Grenzen(=extent$MinX, " ", extent$MinY, " ", extent$MaxX, " ", extent$MaxY) zugeschnitten 
+    system(paste0(paste0(Fusion, "clipdata.exe"," /class:2 ",
+                         mainDir, inDir, i," ",
+                         mainDir, outDir,i, "_GroundPts.las "),
+                  paste(extent$MinX,extent$MinY,extent$MaxX,extent$MaxY))
+    )
+    #Erstellung eines DGM
+    system(paste0(Fusion, "gridsurfacecreate.exe ", 
+                  mainDir, outDir, i,"_GridSurf.dtm ",
+                  "1 M M 1 32 0 0 ",mainDir, outDir,i, "_GroundPts.las"))
+    
+    #Erstellug von neuen Files mit Punkten zwischen 0-2,2-5, ....
+    #j ist Länge des Vektors  
+    for (j in 1:length(heights)-1){
+      
+      system(paste0(paste0(Fusion, "clipdata.exe"," /zmin:",zVals[j], "/zmax:",zVals[j+1],
+                           " /height /dtm:",mainDir, outDir,i,"_GridSurf.dtm ",
+                           mainDir, inDir, i," ",##input
+                           mainDir, outDir, i,
+                           zVals[j],"_",zVals[j+1],"_normalized.las "),
+                    paste(extent$MinX,extent$MinY,extent$MaxX,extent$MaxY)))
+      
+      system(paste0(Fusion, "returndensity.exe ","/ascii ",mainDir,results,i, "_",zVals[j],"_",zVals[j+1], "density.asc ",
+                    "1 ",   mainDir, outDir, i,
+                    zVals[j],"_",zVals[j+1],"_normalized.las "))
+      
+      
+      
+    }
+  }
+}
+
+
+
+
+
+
+
+
+las_files<-list.files(paste0(mainDir,inDir), pattern=".las$", full.names=TRUE,recursive = TRUE)
+
+las_names<-list.files(paste0(mainDir,inDir), pattern=".las$", full.names=FALSE,recursive = TRUE)
+
+
+zVals<-c(0,2,5,10,15,25,30,50)
+
+
+sliceLasData(lasList=las_names,heights=zVals)
+sliceLasData(lasList = las_names,heights = zVals)
+
+#Ergebnis-AScs listen
+list <-list.files(paste0(mainDir,results), pattern=".asc$", full.names=TRUE, recursive = TRUE)
+
+
+rasterlist <- lapply(list, function(x){raster(x)})
+stackedlist <- lapply(rasterlist, function(x){stack(x)})
+
+
+allpoints<-stackedlist[[1]]+stackedlist[[2]]+stackedlist[[3]]+stackedlist[[4]]+stackedlist[[5]]+stackedlist[[6]]+stackedlist[[7]]
+
+
+r1 <- stackedlist[[1]]
+r2 <- stackedlist[[2]]
+r3 <- stackedlist[[3]]
+r4 <- stackedlist[[4]]
+r5 <- stackedlist[[5]]
+r6 <- stackedlist[[6]]
+r7 <- stackedlist[[7]]
+
+#fhdindex <- abs(
+#  (r1/allpoints)*log(r1/allpoints) + 
+#    (r2/allpoints)*log(r2/allpoints) + 
+#    (r3/allpoints)*log(r3/allpoints) + 
+#    (r4/allpoints)*log(r4/allpoints) +
+#    (r5/allpoints)*log(r5/allpoints) + 
+#    (r6/allpoints)*log(r6/allpoints) +
+#    (r7/allpoints)*log(r7/allpoints)
+#)
+
+#FHD_index <- lapply(fun = function(i){
+#                       return(abs(
+#                         (r1/allpoints)*log(r1/allpoints) + 
+#                           (r2/allpoints)*log(r2/allpoints) + 
+#                           (r3/allpoints)*log(r3/allpoints) + 
+#                           (r4/allpoints)*log(r4/allpoints) +
+#                           (r5/allpoints)*log(r5/allpoints) + 
+#                           (r6/allpoints)*log(r6/allpoints) +
+#                           (r7/allpoints)*log(r7/allpoints)
+#                       ))})
+
+#plot(fhdindex)
+leereListe<-list()
+volleListe<-list()
+for (i in 1:length(stackedlist)){
+    tmp<-(stackedlist[[i]]/allpoints)*log(stackedlist[[i]]/allpoints)
+leereListe[i]<-tmp
+
+}
+
+leereListe
+test<-leereListe[[1]]+leereListe[[2]]+leereListe[[3]]+leereListe[[4]]+leereListe[[5]]+leereListe[[6]]+leereListe[[7]]
+volleListe<-stackApply(stack(leereListe), indices=c(1,1,1,1,1,1,1), fun=sum)
+richtigeListe <- volleListe*-1
+
+```
