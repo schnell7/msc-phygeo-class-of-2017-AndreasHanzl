@@ -1,0 +1,61 @@
+---
+title: "da-ws-07"
+author: "Andreas Hanzl, Leonie Hahn, Robin Fischer"
+date: "18 Dezember 2017"
+output: html_document
+---
+
+```{r}
+
+# Pfad setzen ---------------------------------------------------------------------
+filepath_base <- "C:/Users/Robin/Desktop/marburg_master_uni/"
+path_data <- paste0(filepath_base, "data/")
+path_csv <- paste0(path_data, "csv/")
+path_rdata <- paste0(path_data, "rdata/")
+path_scripts <- paste0(filepath_base, "fun/")
+path_temp <- paste0(filepath_base, "temp/")
+
+library("caret")
+
+### Daten einfügen
+cp <- readRDS(paste0(path_rdata, "cp_clean.rds"))
+data <- cp [,c(6:15)]
+dep <- "Winterweizen"
+vars <- colnames(data[,2:10])
+###
+# Vorarbeit
+formula <- paste(dep, " ~ ", paste(vars, collapse=" + "))
+lmod <- lm(formula, data = data)
+r2 <- summary(lmod)$adj.r.squared
+vars_ausw <- vars
+ergebnis <- data.frame(r2, length(vars_ausw))
+
+# SChleife für RFE Berechnung
+for (i in 1:length(vars)){
+  var_imp <- varImp(lmod)
+  var_imp <- do.call("rbind", var_imp)
+  colnames(var_imp) <- vars_ausw
+  var_delete <- (which.min(var_imp[1,]))
+  var_imp_ausw <- var_imp[-var_delete]
+  vars_ausw <- vars_ausw[-var_delete]
+  vars_ausw_df <- rbind.data.frame(var_imp_ausw)
+  colnames(vars_ausw_df) <- vars_ausw
+  formula <- paste(dep, " ~ ", paste(vars_ausw, collapse=" + "))
+  lmod <- lm(formula, data = data)
+  r2 <- summary(lmod)$adj.r.squared
+  ergebnis[i+1,] <- data.frame(r2,  length(vars_ausw))
+  
+  
+  if(ergebnis[i+1,1] < ergebnis[i,1]){
+    used_var <- c(names(vars_ausw_df),names(var_delete))
+    result <- unlist(c(ergebnis[i,], names(vars_ausw_df), names(var_delete)))
+    result_end <- data.frame(result)
+    row.names(result_end)[1:2] <- c("r2", "count_var")
+    
+    break()
+  }
+}
+
+print(result_end)
+
+```
