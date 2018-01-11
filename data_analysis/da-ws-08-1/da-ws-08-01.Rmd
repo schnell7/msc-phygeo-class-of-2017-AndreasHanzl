@@ -1,0 +1,58 @@
+---
+title: "da-ws-08-01"
+author: "Andreas Hanzl, Robin Fischer, Leonie Hahn"
+date: "11 Januar 2018"
+output: html_document
+---
+
+```{r}
+
+filepath_base <- "C:/Users/Leonie.Hahn/Documents/MPG-ui/"
+path_data <- paste0(filepath_base, "daten/data_analysis/")
+path_csv <- paste0(path_data, "csvdata/")
+path_rdata <- paste0(path_data, "rdata/")
+path_scripts <- paste0(filepath_base, "functions/")
+path_temp <- paste0(filepath_base, "daten/data_analysis/temp/")
+
+wood_harvest<-read.csv(paste0(path_csv, "hessen_holzeinschlag_1997-2014_clean.csv"))
+
+library(mgcv)
+
+### cross validation - leave many out (80% des Datensatzen; 100 Durchläufe)
+
+cv<-lapply(seq(3,13), function(k){
+
+  cv_sample <- lapply(seq(1,100), function(i){
+    set.seed(i)
+    s <- sample(nrow(wood_harvest), nrow(wood_harvest)*0.8)
+    train <- wood_harvest[s,]
+    test <- wood_harvest[-s,]
+    gammod <- gam(Eiche ~ s(Buche,k=k), data = train)
+    pred <- predict(gammod, newdata = test)
+    obsv <- test$Eiche
+    rmse <- sqrt(mean((pred - obsv)**2))
+    data.frame(knots = k, rmse = rmse, rsq = summary(gammod)$r.sq)
+    
+  })
+  cv_sample <- do.call("rbind", cv_sample)
+  data.frame(knots = unique(cv_sample$knots),
+             rmse = mean(cv_sample$rmse),
+             rmse_sd_plus = mean(cv_sample$rmse) + sd(cv_sample$rmse),
+             rmse_sd_minus = mean(cv_sample$rmse) - sd(cv_sample$rmse),
+             rsq = mean(cv_sample$rsq))
+  
+})
+
+cv <- do.call("rbind", cv)
+
+plot(cv$knots, cv$rmse/max(cv$rmse), xlab="Anzahl der Knoten", ylab="Werte", type = "l", col = "red", 
+     ylim = c(min(cv$rmse_sd_minus/max(cv$rmse)), max(cv$rmse_sd_plus/max(cv$rmse))))
+lines(cv$knots, cv$rmse_sd_plus/max(cv$rmse), col = "red", lty = 2)
+lines(cv$knots, cv$rmse_sd_minus/max(cv$rmse), col = "red", lty = 2)
+lines(cv$knots, cv$rsq, col = "blue")
+
+legend(2.8, 1.8, c("RMSE (normalisiert; max=1)",
+expression(paste(sigma, " des RMSE (norm.)")), "R²"), 
+      col = c("red","red", "blue"), border = "black", lty = c(1,2,1), 
+      bty = "o", box.lty = 1, box.lwd = 1, box.col = "black")
+```
