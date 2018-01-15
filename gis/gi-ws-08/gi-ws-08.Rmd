@@ -1,0 +1,190 @@
+---
+title: "gi-ws-08"
+author: "Andreas Hanzl, Leonie Hahn, Robin Fischer"
+date: "15 Jänner 2018"
+output: html_document
+---
+
+```{r, eval=FALSE}
+### Course existing functions modified 
+
+### Canopy model
+CanopyModel<-function(lasFiles, median, smooth, texture, outlier, ground, res){
+  
+  for (i in 1:length(lasFiles)){
+    command<-Fusion
+    command<-paste0(command,"canopymodel.exe")
+    #set switches- switches will not be defined if argument is missing in function call
+    ifelse(!missing(median),  command<-paste0(command, " /median:", 
+                                             median),  command<-command)
+    ifelse(!missing(smooth),  command<-paste0(command, " /smooth:", 
+                                             smooth),  command<-command)
+    ifelse(!missing(texture), command<-paste0(command, " /texture:", 
+                                             texture), command<-command)
+    ifelse(!missing(outlier), command<-paste0(command, " /outlier:", 
+                                             outlier),     command<-command)
+    ifelse(!missing(ground),  command<-paste0(command, " /ground:", gi_run, 
+                                              basename(ground[i])), command<-command)
+    command<-paste0(command," ", gi_run,"canopy_",gi-ws
+                    "_",lasFiles[i],".dtm")
+    command<-paste0(command," ", res, " M M 1 32 0 0"  )
+    command<-paste0(command," ", gi_input,lasFiles[i])
+    system("cmd.exe", input=command)}
+}
+
+### DTM2TIF
+
+DTM2TIF<-function(dtmFiles){
+  
+  for (i in 1:length(dtmFiles)){
+    command<-Fusion
+    command<-paste0(command,"DTM2TIF.exe")
+    command<-paste0(command," ", gi_run,dtmFiles[i])
+    system("cmd.exe", input=command)}
+}
+
+### Groundsurfacecreate
+
+GroundSurfaceCreate<-function(lasFiles, res ){
+  
+  
+  paramList <- c(paste(as.character(res),"M M 1 32 0 0 "))
+  
+  
+  for (i in 1:length(lasFiles)) {
+    ### --> retrieve infomation from las file
+    
+    
+    # calculate extents etc...
+    
+    #--> Fusion catalog if not allready exists
+    
+    command<-Fusion
+    command<-paste0(command, "catalog.exe")
+    command<-paste0(command," ", gi_input, basename(lasFiles[i]) )
+    command<-paste0(command," ", gi_run,lasFiles[i],".html"   )
+    system(command)
+    
+    #--> extract extent info 
+    info <- read.csv(paste0(gi_run,lasFiles[i],".csv"))
+    #fix extent
+    
+    info2<-missingExtents(info)
+    #TODO  fix error in las files if (as.numeric(info[[2]][3])) fixLas()
+    #--> define extent for further calculation
+    extent<-paste(as.numeric(info2$MinX),as.numeric(info2$MinY),as.numeric(info2$MaxX),as.numeric(info2$MaxY))
+    ext<-c(as.numeric(info2$MinX),as.numeric(info2$MinY),as.numeric(info2$MaxX),as.numeric(info2$MaxY))
+    
+    
+    #--> Create a .las with groundpoints only 
+    command<-Fusion
+    command<-paste0(command, "clipdata.exe")
+    command<-paste0(command," ","/class:2 ")
+    command<-paste0(command," ", gi_input, basename(lasFiles[i])   )
+    command<-paste0(command," ", gi_run,"ground_",basename(lasFiles[i])   )
+    command<-paste0(command," ", extent)
+    system(command)  
+    
+    #--> Create the required PLANS DTM format 
+    command<-Fusion
+    command<-paste0(command, "gridsurfacecreate.exe")
+    command<-paste0(command," ", gi_run,"surf_",basename(lasFiles[i]),".dtm")
+    command<-paste0(command," ", paramList  )
+    command<-paste0(command," ", gi_run,"ground_",basename(lasFiles[i])   )
+    system(command)}
+  
+}
+
+```
+
+```{r, eval=FALSE}
+### Calculation of... 
+###   Canopy height (no switch activated)
+###   Canopy heterogenity (activate texture)
+###   
+
+#--> library requirements
+library(link2GI)
+library(Rcpp)
+library(rgdal)
+library(mmap)
+library(gdalUtils)
+library(raster)
+library(mapview)
+library(uavRst)
+
+
+#--> NOTE point to whereever you want but avoid strange letters as dots etc
+#--> the ~ is a substitute for the system variable HOME
+#--> projDir is general project folder  basic folder eg. C:/Dokumente/1_semester_MSCGEO/GIS/
+projDir<-"C:/Users/Andreas/Documents/Physische_Geographie/WiSe_2017/"
+#-->  rootFolder of the github repository 
+rootDir<-"caldern/"
+gi_input<-"input/"
+gi_run<-"run/"
+gi_output<-"output/"
+fun<-"fun/"
+
+#--> current class
+courseCode<-"gi"
+#--> current class session folder
+activeSessionFolder<-8
+
+#--> create plots
+plotIt <- TRUE
+
+#--> create full rootDir
+rootDir<-paste0(projDir,rootDir)
+gi_input<-paste0(rootDir,gi_input)
+gi_run<-paste0(rootDir,gi_run)
+gi_output<-paste0(rootDir,gi_output)
+fun<-paste0(rootDir,fun)
+#--> make a list of all functions in the corresponding function folder and source these functions
+res<- sapply(list.files(pattern="[.]R$",path=paste0(rootDir,"/fun"),full.names=TRUE),FUN=source)
+
+
+
+### ---------------------------- Thematic  Settings ----------------------------
+
+#--> dirty workaround for platform indepentend  use of fusion
+source(paste0(rootDir,"fun/","controlFusion.txt"))
+
+# target grid size
+gridsize <- 30
+
+# for assignment of projection
+proj4 = "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+
+# list las files
+lasfiles<-list.files(gi_input,pattern=".las$", full.names=FALSE) 
+
+# create a ground file by using the last returns
+GroundSurfaceCreate(lasFiles=lasfiles, res=gridsize)
+ground<-list.files(gi_run,pattern=c("^surf_",".dtm$"), full.names=FALSE)
+
+
+### Using CanopyModel to calculate  of the caldern training area
+### median: n by n pixel window for computing the mean value
+### smooth: n by n pixel window for computing the mean value
+### texture: n by n pixel window for computing the coefficient of variation in surface height
+### outlier: omit points below n meters and above m meters tree height by typing "n,m"
+### ground: path for ground file (dtm)
+### res: n by n meters gridsize
+
+CanopyModel(lasFiles = lasfiles,
+            #median = 3,
+            #smooth = 3,
+            texture = 3,
+            #outlier = "3,50",
+            ground = ground,
+            res = 30)
+### To use different switches of the function activate the #data
+### list the CanopyModel DTM files and convert them into TIF
+dtmfiles<-list.files(gi_run,pattern=c("^canopy_",".dtm$"), full.names=FALSE) 
+DTM2TIF(dtmFiles=dtmfiles)
+
+```
+
+```{r}
+### Examples are included in folder construction -just look for the  .jpeg files
+```
